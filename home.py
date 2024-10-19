@@ -1,6 +1,7 @@
 import streamlit as st
 
-pdf_typeA_page = st.Page("pages/pdf_typeA_page.py", title="PDF Type A", icon=":material/content_cut:")
+test_split_page = st.Page("streamlit_pages/test_split.py", title="분리 테스트", icon=":material/content_cut:")
+test_mathpixAPI_page = st.Page("streamlit_pages/test_mathpixAPI.py", title="Mathpix API(PDF) 테스트", icon=":material/content_cut:")
 
-pg = st.navigation([pdf_typeA_page, ])
+pg = st.navigation([test_split_page, test_mathpixAPI_page])
 pg.run()

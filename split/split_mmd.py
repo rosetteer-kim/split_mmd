@@ -1,28 +1,38 @@
 import re
+from split.url_images import get_list_image
 
-def get_list_tex(src_mmd: str) -> list[str]:
+
+def get_list_tex(src_mmd: str) -> tuple[list[str], list[list[str]]]:
     texts = split_by_numbered_lines(src_mmd)
     texts = process_list(texts)
     texts = [text.strip() for text in texts]
     # 특정 단어 삭제
     texts = [remove_words(text) for text in texts]
-    # \section*{section_title}부터 끝까지 삭제
+    # 특정 단어부터 끝까지 삭제 (주의: 특정 단어를 삭제 후 특정 단어부너 끝까지 삭제해야함)
     texts = [remove_section_to_end(text) for text in texts]
     # 문서 상단에 '대학수학능력시험'을 포함한 부분 삭제
     texts = [text for text in texts if not re.findall("대학수학능력시험", text)]
     # 한글 문자 또는 \( 또는 \)를 포함하는 항목만 선택
     korean_pattern = re.compile('[가-힣]|\\(|\\)')
     texts = [text for text in texts if korean_pattern.search(text)]
-    ## 18byte 이하인 항목 제거
+    # 18byte 이하인 항목 제거
     texts = [text for text in texts if len(text) > 18]
 
-    return texts
+    # image 리스트 생성
+    images = [get_list_image(text) for text in texts]
+    # text에서 image url부분 표시
+    texts = [re.sub(r'!\[]\(.*?\)','\n%[그림 위치]%\n', text) for text in texts]
+
+    return texts, images
+
 
 def remove_words(text: str) -> str:
-    words = ['\section*{수학 영역}']
+    words = ['\section*{수학 영역}', '수학 영역(미적분)']
     pattern = '|'.join(map(re.escape, words))
     text = re.sub(pattern,'', text)
     return text.strip()
+
+
 # \section*{section_title}부터 끝까지 삭제
 def remove_section_to_end(text: str) -> str:
     words = ['\section*{공통과목}', '\section*{미적분}', '\section*{확률과 통계}', '\section*{단답형}'
@@ -32,13 +42,14 @@ def remove_section_to_end(text: str) -> str:
     match = regex.search(text)
     if match:
         text = text[:match.start()]
-    words2 = ['- 수학 영역', '* 확인 사항', '5 지선다형']
+    words2 = ['- 수학 영역', '* 확인 사항', '5 지선다형', '5지선다형']
     pattern2 = '|'.join(map(re.escape, words2))
     regex2 = re.compile(pattern2, re.IGNORECASE)
     match2 = regex2.search(text)
     if match2:
         text = text[:match2.start()]
     return text.strip()
+
 
 def split_by_numbered_lines(text: str) -> list[str]:
     # 스캔한 모의고사의 정답은 따로 이미지로 처리하기로 하자.
@@ -60,15 +71,17 @@ def split_by_numbered_lines(text: str) -> list[str]:
             if current_section:
                 result.append('\n'.join(current_section))
                 current_section = []
-        current_section.append(re.sub(pattern, '', line))
-        # current_section.append(line)
+        current_section.append(re.sub(pattern, '', line)) # 찾은 패턴을 포함하지 않음
+        # current_section.append(line) # 찾은 패턴을 포함함
 
     if current_section:
         result.append('\n'.join(current_section))
 
     return result
 
-def process_list(input_list):
+
+# 분리된 문제(리스트)의 일부를 세분
+def process_list(input_list:list[str]) -> list[str]:
     result = []
     for item in input_list:
         if isinstance(item, str):
@@ -79,7 +92,7 @@ def process_list(input_list):
     return result
 
 
-def split_by_pattern(text):
+def split_by_pattern(text: str) -> list[str]:
     # 패턴: 숫자로 시작하는 줄, 빈 줄, 텍스트와 괄호 안의 숫자로 끝나는 줄
     pattern = r'(\d+\s?\n\n(?:(?!\n).){1,7}?\(?\d+\)?)' # 서바이벌 정규 해설
     regex = re.compile(pattern, re.MULTILINE | re.DOTALL)
