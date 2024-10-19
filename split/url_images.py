@@ -4,11 +4,12 @@ import requests
 import time
 
 
-def get_list_image(text: str) -> list[str]:
+def get_list_image(idx: int, text: str) -> list[str]:
     # result = re.findall(r'!\[]\((.*)?\)', text)
     results = [url for url in re.findall(r'!\[]\((.*)?\)', text)]
-    for result in results:
-        success = download_image(result)
+    for idy, result in enumerate(results):
+    # for result in results:
+        success = download_image(result, idx, idy)
         if success:
             print("다운로드 작업이 성공적으로 완료되었습니다.")
         else:
@@ -17,8 +18,13 @@ def get_list_image(text: str) -> list[str]:
     return results
 
 
-def download_image(url, max_retries=3, retry_delay=5):
-    save_path = os.path.join('split/images', os.path.basename(url)).split('?')[0]
+def download_image(url, idx: int, idy:int, max_retries=3, retry_delay=5):
+    directory = "split/images"
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+    filename = os.path.basename(url).split("?")[0]
+    filename = os.path.splitext(filename)[0] + f"-{idx + 1}-{idy + 1}" + os.path.splitext(filename)[1]
+    save_path = os.path.join(directory, filename)
     for attempt in range(max_retries):
         try:
             response = requests.get(url)

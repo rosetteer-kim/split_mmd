@@ -19,7 +19,7 @@ def get_list_tex(src_mmd: str) -> tuple[list[str], list[list[str]]]:
     texts = [text for text in texts if len(text) > 18]
 
     # image 리스트 생성
-    images = [get_list_image(text) for text in texts]
+    images = [get_list_image(idx, text) for idx, text in enumerate(texts)]
     # text에서 image url부분 표시
     texts = [re.sub(r'!\[]\(.*?\)','\n%[그림 위치]%\n', text) for text in texts]
 
