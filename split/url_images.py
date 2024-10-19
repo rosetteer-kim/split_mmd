@@ -5,16 +5,16 @@ import time
 
 
 def get_list_image(text: str) -> list[str]:
-    # result = []
-    result = re.findall(r'!\[]\((.*)?\)', text)
-    for result in result:
+    # result = re.findall(r'!\[]\((.*)?\)', text)
+    results = [url for url in re.findall(r'!\[]\((.*)?\)', text)]
+    for result in results:
         success = download_image(result)
         if success:
             print("다운로드 작업이 성공적으로 완료되었습니다.")
         else:
             print("다운로드 작업이 실패했습니다.")
 
-    return result
+    return results
 
 
 def download_image(url, max_retries=3, retry_delay=5):
