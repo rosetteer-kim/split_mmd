@@ -2,13 +2,13 @@ import re
 from split.url_images import get_list_image
 
 
-def get_list_tex(src_mmd: str) -> tuple[list[str], list[list[str]]]:
+def get_list_tex(src_mmd: str) -> list[str]:
     texts = split_by_numbered_lines(src_mmd)
     texts = process_list(texts)
     texts = [text.strip() for text in texts]
     # 특정 단어 삭제
     texts = [remove_words(text) for text in texts]
-    # 특정 단어부터 끝까지 삭제 (주의: 특정 단어를 삭제 후 특정 단어부너 끝까지 삭제해야함)
+    # 특정 단어부터 끝까지 삭제 (주의: 특정 단어를 삭제 후 특정 단어부터 끝까지 삭제해야함)
     texts = [remove_section_to_end(text) for text in texts]
     # 문서 상단에 '대학수학능력시험'을 포함한 부분 삭제
     texts = [text for text in texts if not re.findall("대학수학능력시험", text)]
@@ -18,12 +18,12 @@ def get_list_tex(src_mmd: str) -> tuple[list[str], list[list[str]]]:
     # 18byte 이하인 항목 제거
     texts = [text for text in texts if len(text) > 18]
 
-    # image 리스트 생성
-    images = [get_list_image(idx, text) for idx, text in enumerate(texts)]
-    # text에서 image url부분 표시
-    texts = [re.sub(r'!\[]\(.*?\)','\n%[그림 위치]%\n', text) for text in texts]
+    # # image 리스트 생성
+    # images = [get_list_image(text) for text in texts]
+    # # text에서 image url 부분 표시
+    # texts = [re.sub(r'!\[]\(.*?\)','\n%[그림 위치]%\n', text) for text in texts]
 
-    return texts, images
+    return texts
 
 
 def remove_words(text: str) -> str:
@@ -94,7 +94,7 @@ def process_list(input_list:list[str]) -> list[str]:
 
 def split_by_pattern(text: str) -> list[str]:
     # 패턴: 숫자로 시작하는 줄, 빈 줄, 텍스트와 괄호 안의 숫자로 끝나는 줄
-    pattern = r'(\d+\s?\n\n(?:(?!\n).){1,7}?\(?\d+\)?)' # 서바이벌 정규 해설
+    pattern = r'(\d+\s?\n\n(?:(?!\n|\w).){1,7}?\(?\d+\)?)' # 서바이벌 정규 해설
     regex = re.compile(pattern, re.MULTILINE | re.DOTALL)
     # 모든 매치 찾기
     matches = list(regex.finditer(text))
