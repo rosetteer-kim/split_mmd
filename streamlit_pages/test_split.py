@@ -5,6 +5,7 @@ from io import StringIO
 
 from split.split_mmd import get_list_tex
 
+
 st.set_page_config(
     page_title="MMD/MD 분리 테스트",
     page_icon="🧊",
